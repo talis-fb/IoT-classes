@@ -171,20 +171,6 @@ void loop() {
   client.publish(TOPIC_SENSOR_MEDIA, temp_media.c_str());
   sendStoredData();
 
-  /*
-  if (!client.publish(TOPIC_SENSOR1, temp1.c_str())) {
-    Serial.println("[ERROR] Failed to sending to " + String(TOPIC_SENSOR1));
-    //saveDataToSPIFFS(TOPIC_SENSOR1, temp1);
-  }
-  if (!client.publish(TOPIC_SENSOR2, temp2.c_str())) {
-    Serial.println("[ERROR] Failed to sending to " + String(TOPIC_SENSOR2));
-    //saveDataToSPIFFS(TOPIC_SENSOR2, temp2);
-  }
-  if (!client.publish(TOPIC_SENSOR_MEDIA, temp_media.c_str())) {
-    Serial.println("[ERROR] Failed to sending to " +  String(TOPIC_SENSOR_MEDIA));
-    //saveDataToSPIFFS(TOPIC_SENSOR_MEDIA, temp_media);
-  }
-  */
   
   delay(10000);
 }

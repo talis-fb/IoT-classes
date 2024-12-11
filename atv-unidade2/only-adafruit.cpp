@@ -17,18 +17,17 @@ const int DHT_PIN_2 = 16;
 DHTesp dhtSensor2;
 #define TOPIC_SENSOR2 "JoaCuscuz/feeds/temp2"
 
+// Media
 #define TOPIC_SENSOR_MEDIA "JoaCuscuz/feeds/tempmean"
 
 
-
 // Update these with values suitable for your network.
-
 const char* ssid = "Wokwi-GUEST";
 const char* password = "";
 
 const char* mqtt_server = "io.adafruit.com";
 const char* mqtt_user = "JoaCuscuz";
-const char* mqtt_password = "aio_*****";
+const char* mqtt_password = "aio_****";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -38,7 +37,6 @@ char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
 void setup_wifi() {
-
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
@@ -63,8 +61,11 @@ void setup_wifi() {
 
 void reconnect() {
   // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
+  int tries = 3;
+  while (!client.connected() && tries > 0) {
+    tries--;
+    Serial.print("Attempting MQTT connection... left try:" + String(tries));
+    
     // Create a random client ID
     String clientId = "ESP8266Client-";
 
@@ -83,8 +84,9 @@ void reconnect() {
   }
 }
 
-/*
 void saveDataToSPIFFS(String topic, String data) {
+  return;
+  /*
   File file = SPIFFS.open("/data.log", FILE_APPEND);
   if (!file) {
     Serial.println("[ERROR] Failed to open file for writing");
@@ -94,12 +96,15 @@ void saveDataToSPIFFS(String topic, String data) {
   file.println(line);
   file.close();
   Serial.println("Data saved to SPIFFS -> '" + line  + "'");
+  */
 }
 
-void resendStoredData() {
+void sendStoredData() {
+  return;
+  /*
   File file = SPIFFS.open("/data.log", FILE_READ);
   if (!file) {
-    Serial.println("No data to resend");
+    Serial.println("No saved data to send");
     return;
   }
 
@@ -119,22 +124,19 @@ void resendStoredData() {
   }
   file.close();
   SPIFFS.remove("/data.log");
+  */
 }
-*/
 
 void setup() {
-  // pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   delay(200);
 
-  /*
-  if (!SPIFFS.begin(true)) {
-    Serial.println("[ERROR] An error occurred while mounting SPIFFS");
-    return;
-  }
-  Serial.println("[OK] SPIFFS Mounted");
-  */
+  // if (!SPIFFS.begin(true)) {
+  //   Serial.println("[ERROR] An error occurred while mounting SPIFFS");
+  //   return;
+  // }
+  // Serial.println("[OK] SPIFFS Mounted");
 
   dhtSensor1.setup(DHT_PIN_1, DHTesp::DHT22);
   dhtSensor2.setup(DHT_PIN_2, DHTesp::DHT22);
@@ -162,30 +164,18 @@ void loop() {
   String temp_media = String(mean);
   Serial.println("Temp media   : " + temp_media + "°C");
 
-  // String humidity = String(data.humidity, 1);
-  // Serial.println("Humidity: " + humidity + "%");
-
-  //client.publish(TOPIC_SENSOR1, temp1.c_str());
-  //client.publish(TOPIC_SENSOR2, temp2.c_str());
-  //client.publish(TOPIC_SENSOR_MEDIA, temp_media.c_str());
-
-  if (!client.publish(TOPIC_SENSOR1, temp1.c_str())) {
-    Serial.println("[ERROR] Failed to sending to " + String(TOPIC_SENSOR1));
-    //saveDataToSPIFFS(TOPIC_SENSOR1, temp1);
-  }
-  if (!client.publish(TOPIC_SENSOR2, temp2.c_str())) {
-    Serial.println("[ERROR] Failed to sending to " + String(TOPIC_SENSOR2));
-    //saveDataToSPIFFS(TOPIC_SENSOR2, temp2);
-  }
-  if (!client.publish(TOPIC_SENSOR_MEDIA, temp_media.c_str())) {
-    Serial.println("[ERROR] Failed to sending to " +  String(TOPIC_SENSOR_MEDIA));
-    //saveDataToSPIFFS(TOPIC_SENSOR_MEDIA, temp_media);
-  }
-
   if (!client.connected()) {
+    saveDataToSPIFFS(TOPIC_SENSOR1, temp1);
+    saveDataToSPIFFS(TOPIC_SENSOR2, temp2);
+    saveDataToSPIFFS(TOPIC_SENSOR_MEDIA, temp_media);
     reconnect();
-    //resendStoredData();
+    return;
   }
+
+  client.publish(TOPIC_SENSOR1, temp1.c_str());
+  client.publish(TOPIC_SENSOR2, temp2.c_str());
+  client.publish(TOPIC_SENSOR_MEDIA, temp_media.c_str());
+  sendStoredData();
   
   delay(10000);
 }
